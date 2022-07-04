@@ -8,13 +8,10 @@ const cardRouter = require('./routes/card');
 mongoose.connect('mongodb://localhost:27017/mestodb');
 
 const app = express();
-
 const PORT = 3000;
 
 app.use(bodyParser.json());
-
 app.use(express.static(path.resolve(__dirname, 'build')));
-
 app.use((req, res, next) => {
   req.user = {
     _id: '62c0b9c245c445ce45cccfa2', // Test user 2
@@ -22,9 +19,7 @@ app.use((req, res, next) => {
 
   next();
 });
-
 app.use('/users', userRouter);
-
 app.use('/cards', cardRouter);
 
 app.listen(PORT, () => {
