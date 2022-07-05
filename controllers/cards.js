@@ -30,13 +30,17 @@ module.exports.createCard = (req, res) => {
 };
 
 module.exports.deleteCard = (req, res) => {
-  Card.findOneAndDelete(req.params.id)
+  Card.findByIdAndRemove(req.params.id)
     .then((card) => {
       if (!card) {
         return res.status(404).send({ message: 'Карточка не найдена' });
       } return res.status(200).send(card);
     })
-    .catch(() => res.status(500).send({ message: 'На сервере произошла ошибка' }));
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        return res.status(400).send({ message: 'Переданные данные карточки некорректны' });
+      } return res.status(500).send({ message: 'На сервере произошла ошибка' });
+    });
 };
 
 module.exports.likeCard = (req, res) => {
