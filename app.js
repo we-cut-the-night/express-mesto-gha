@@ -4,6 +4,7 @@ const bodyParser = require('body-parser');
 const helmet = require('helmet');
 const userRouter = require('./routes/users');
 const cardRouter = require('./routes/card');
+const { login, createUser } = require('./controllers/users');
 
 mongoose.connect('mongodb://localhost:27017/mestodb');
 
@@ -13,13 +14,8 @@ const PORT = 3000;
 app.use(helmet());
 
 app.use(bodyParser.json());
-app.use((req, res, next) => {
-  req.user = {
-    _id: '62c0b9c245c445ce45cccfa2', // Test user 2
-  };
-
-  next();
-});
+app.post('/signin', login);
+app.post('/signup', createUser);
 app.use('/users', userRouter);
 app.use('/cards', cardRouter);
 app.use((req, res) => res.status(404).send({ message: 'Страница не найдена' }));
