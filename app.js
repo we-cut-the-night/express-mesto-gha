@@ -5,6 +5,7 @@ const helmet = require('helmet');
 const userRouter = require('./routes/users');
 const cardRouter = require('./routes/card');
 const { login, createUser } = require('./controllers/users');
+const auth = require('./middlewares/auth');
 
 mongoose.connect('mongodb://localhost:27017/mestodb');
 
@@ -16,8 +17,9 @@ app.use(helmet());
 app.use(bodyParser.json());
 app.post('/signin', login);
 app.post('/signup', createUser);
-app.use('/users', userRouter);
-app.use('/cards', cardRouter);
+
+app.use('/users', auth, userRouter);
+app.use('/cards', auth, cardRouter);
 app.use((req, res) => res.status(404).send({ message: 'Страница не найдена' }));
 
 app.listen(PORT, () => {

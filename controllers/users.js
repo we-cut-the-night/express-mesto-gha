@@ -46,7 +46,7 @@ module.exports.updateUserAvatar = (req, res) => {
 module.exports.login = (req, res) => {
   const { email, password } = req.body;
 
-  User.findOne({ email })
+  User.findOne({ email }).select('+password')
     .then((user) => {
       if (!user) {
         return Promise.reject(new Error('Неправильные почта или пароль'));
@@ -61,4 +61,11 @@ module.exports.login = (req, res) => {
     .catch((err) => {
       res.status(401).send({ message: err.message });
     });
+};
+
+module.exports.getMyUser = (req, res) => {
+  User.findById(req.user._id)
+    .orFail(new Error('notFoundErr'))
+    .then((user) => res.status(200).send(user))
+    .catch((err) => handleError(res, err));
 };

@@ -28,8 +28,13 @@ module.exports.createCard = (req, res) => {
 };
 
 module.exports.deleteCard = (req, res) => {
-  Card.findByIdAndRemove(req.params.id)
+  Card.findById(req.params.id)
     .orFail(new Error('notFoundErr'))
+    .then((card) => {
+      if (req.user._id !== card.owner._id.toString()) {
+        return res.status(400).send({ message: 'Недостаточно прав' });
+      } return Card.findByIdAndRemove(req.params.id);
+    })
     .then((card) => res.status(200).send(card))
     .catch((err) => handleError(res, err));
 };
