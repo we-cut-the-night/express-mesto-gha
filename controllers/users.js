@@ -22,10 +22,14 @@ module.exports.createUser = (req, res) => {
   const {
     name, about, avatar, email, password,
   } = req.body;
-  User.create({
-    name, about, avatar, email, password,
-  })
-    .then((user) => res.status(200).send(user))
+
+  bcrypt.hash(password, 10)
+    .then((hash) => User.create({
+      name, about, avatar, email, password: hash,
+    }))
+    .then((user) => res.send({
+      name: user.name, about: user.about, avatar: user.avatar,
+    }))
     .catch((err) => handleError(res, err));
 };
 
@@ -43,24 +47,15 @@ module.exports.updateUserAvatar = (req, res) => {
     .catch((err) => handleError(res, err));
 };
 
-module.exports.login = (req, res) => {
+module.exports.login = (req, res, next) => {
   const { email, password } = req.body;
 
-  User.findOne({ email }).select('+password')
+  return User.findUserByCredentials(email, password)
     .then((user) => {
-      if (!user) {
-        return Promise.reject(new Error('Неправильные почта или пароль'));
-      } return bcrypt.compare(password, user.password)
-        .then((matched) => {
-          const token = jwt.sign({ _id: user._id }, 'some-secret-key', { expiresIn: '7d' });
-          if (!matched) {
-            return Promise.reject(new Error('Неправильные почта или пароль'));
-          } return res.send({ token });
-        });
+      const token = jwt.sign({ _id: user._id }, 'some-secret-key', { expiresIn: '7d' });
+      res.send({ token });
     })
-    .catch((err) => {
-      res.status(401).send({ message: err.message });
-    });
+    .catch(next);
 };
 
 module.exports.getMyUser = (req, res) => {
