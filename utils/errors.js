@@ -1,10 +1,13 @@
-module.exports.handleError = (res, err) => {
+const NotFoundErr = require('../errors/404-not-found-err');
+const BadReqErr = require('../errors/400-bad-req-err');
+
+module.exports.handleError = (res, err, next) => {
   if (err.message === 'notFoundErr') {
-    res.status(404).send({ message: 'По запросу ничего не найдено' });
+    next(new NotFoundErr('По запросу ничего не найдено'));
     return;
   }
   if (err.name === 'CastError' || err.name === 'ValidationError') {
-    res.status(400).send({ message: 'Переданы некорректные данные' });
+    next(new BadReqErr('Переданы некорректные данные'));
     return;
-  } res.status(500).send({ message: 'На сервере произошла ошибка' });
+  } next(err);
 };

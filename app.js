@@ -8,6 +8,7 @@ const cardRouter = require('./routes/card');
 const { login, createUser } = require('./controllers/users');
 const auth = require('./middlewares/auth');
 const { regex } = require('./utils/regex');
+const NotFoundErr = require('./errors/404-not-found-err');
 
 mongoose.connect('mongodb://localhost:27017/mestodb');
 
@@ -37,7 +38,7 @@ app.post('/signup', celebrate({
 
 app.use('/users', auth, userRouter);
 app.use('/cards', auth, cardRouter);
-app.use((req, res) => res.status(404).send({ message: 'Страница не найдена' }));
+app.use((req, res, next) => next(new NotFoundErr('Страница не найдена')));
 
 app.use(errors());
 
