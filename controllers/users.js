@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 const { handleError } = require('../utils/errors');
 const ConflictErr = require('../errors/409-conflict-err');
+const AuthError = require('../errors/401-auth-err');
 
 module.exports.getUsers = (req, res) => {
   User.find({})
@@ -61,7 +62,11 @@ module.exports.login = (req, res, next) => {
       const token = jwt.sign({ _id: user._id }, 'some-secret-key', { expiresIn: '7d' });
       res.send({ token });
     })
-    .catch(next);
+    .catch((err) => {
+      if (err.code === 401) {
+        next(new AuthError('Некорректный email или пароль'));
+      } next(err);
+    });
 };
 
 module.exports.getMyUser = (req, res) => {
