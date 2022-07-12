@@ -4,7 +4,6 @@ const User = require('../models/user');
 const { handleError } = require('../utils/errors');
 const ConflictErr = require('../errors/409-conflict-err');
 const AuthError = require('../errors/401-auth-err');
-const BadReqErr = require('../errors/400-bad-req-err');
 const NotFoundErr = require('../errors/404-not-found-err');
 
 module.exports.getUsers = (req, res) => {

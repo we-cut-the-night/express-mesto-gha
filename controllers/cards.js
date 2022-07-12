@@ -1,5 +1,6 @@
 const Card = require('../models/card');
 const { handleError } = require('../utils/errors');
+const NotFoundErr = require('../errors/404-not-found-err');
 
 module.exports.getCards = (req, res, next) => {
   Card.find({})
@@ -39,15 +40,17 @@ module.exports.deleteCard = (req, res) => {
     .catch((err) => handleError(res, err));
 };
 
-module.exports.likeCard = (req, res) => {
+module.exports.likeCard = (req, res, next) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
     { $addToSet: { likes: req.user._id } },
     { new: true },
   )
-    .orFail(new Error('notFoundErr'))
-    .then((card) => res.status(200).send(card))
-    .catch((err) => handleError(res, err));
+    .orFail(new NotFoundErr('Карточка не найдена'))
+    .then((like) => {
+      res.status(200).send(like);
+    })
+    .catch(next);
 };
 
 module.exports.dislikeCard = (req, res) => {
