@@ -4,6 +4,8 @@ const User = require('../models/user');
 const { handleError } = require('../utils/errors');
 const ConflictErr = require('../errors/409-conflict-err');
 const AuthError = require('../errors/401-auth-err');
+const BadReqErr = require('../errors/400-bad-req-err');
+const NotFoundErr = require('../errors/404-not-found-err');
 
 module.exports.getUsers = (req, res) => {
   User.find({})
@@ -13,11 +15,14 @@ module.exports.getUsers = (req, res) => {
     .catch(() => res.status(500).send({ message: 'На сервере произошла ошибка' }));
 };
 
-module.exports.getUserById = (req, res) => {
+module.exports.getUserById = (req, res, next) => {
   User.findById(req.params.id)
-    .orFail(new Error('notFoundErr'))
-    .then((user) => res.status(200).send(user))
-    .catch((err) => handleError(res, err));
+    .then((user) => {
+      if (!user) {
+        return Promise.reject(new NotFoundErr('Пользователь не найден'));
+      } return res.status(200).send(user);
+    })
+    .catch(next);
 };
 
 module.exports.createUser = (req, res, next) => {
