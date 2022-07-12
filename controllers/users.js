@@ -63,7 +63,7 @@ module.exports.login = (req, res, next) => {
       res.send({ token });
     })
     .catch((err) => {
-      if (err.code === 401) {
+      if (err.statusCode === 401) {
         next(new AuthError('Некорректный email или пароль'));
       } next(err);
     });
