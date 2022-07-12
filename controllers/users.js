@@ -57,16 +57,23 @@ module.exports.updateUserAvatar = (req, res) => {
 module.exports.login = (req, res, next) => {
   const { email, password } = req.body;
 
-  return User.findUserByCredentials(email, password)
+  User.findOne({ email }).select('+password')
+    .then((user) => {
+      if (!user) {
+        return Promise.reject(new AuthError('Некорректный email или пароль'));
+      }
+      return bcrypt.compare(password, user.password)
+        .then((matched) => {
+          if (!matched) {
+            return Promise.reject(new AuthError('Некорректный email или пароль'));
+          } return user;
+        });
+    })
     .then((user) => {
       const token = jwt.sign({ _id: user._id }, 'some-secret-key', { expiresIn: '7d' });
       res.send({ token });
     })
-    .catch((err) => {
-      if (err.statusCode === 401) {
-        next(new AuthError('Некорректный email или пароль'));
-      } next(err);
-    });
+    .catch(next);
 };
 
 module.exports.getMyUser = (req, res) => {

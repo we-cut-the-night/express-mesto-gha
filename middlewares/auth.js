@@ -20,7 +20,7 @@ module.exports = (req, res, next) => {
   }
 
   // req.user = {
-  //   _id: '62c0bcc55be36aa3029dc630', // Test user 2
+  //   _id: '62cdad8fe7c2882cf318cc4a', // Test user 2
   // };
 
   req.user = payload;
