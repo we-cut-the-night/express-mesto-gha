@@ -33,7 +33,6 @@ module.exports.createUser = (req, res, next) => {
     .then((oldUser) => {
       if (oldUser) {
         next(new ConflictErr('Пользователь с таким email уже существует'));
-        return;
       }
       bcrypt.hash(password, 10)
         .then((hash) => User.create({
