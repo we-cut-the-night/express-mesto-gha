@@ -29,7 +29,7 @@ module.exports.createUser = (req, res) => {
     name, about, avatar, email, password,
   } = req.body;
 
-  User.findOne({ email })
+  User.findOne(email)
     .then((isTrue) => {
       if (isTrue) {
         return Promise.reject(new ConflictErr('Пользователь с таким email уже существует'));
@@ -43,7 +43,8 @@ module.exports.createUser = (req, res) => {
           name: user.name, about: user.about, avatar: user.avatar,
         }))
         .catch((err) => handleError(res, err));
-    });
+    })
+    .catch((err) => handleError(res, err));
 };
 
 module.exports.updateUser = (req, res) => {
