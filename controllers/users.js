@@ -24,27 +24,27 @@ module.exports.getUserById = (req, res) => {
     .catch((err) => handleError(res, err));
 };
 
-module.exports.createUser = (req, res) => {
+module.exports.createUser = (req, res, next) => {
   const {
     name, about, avatar, email, password,
   } = req.body;
 
-  User.findOne(email)
-    .then((isTrue) => {
-      if (isTrue) {
-        return Promise.reject(new ConflictErr('Пользователь с таким email уже существует'));
+  User.findOne({ email })
+    .then((oldUser) => {
+      if (oldUser) {
+        next(new ConflictErr('Пользователь с таким email уже существует'));
+        return;
       }
-
-      return bcrypt.hash(password, 10)
+      bcrypt.hash(password, 10)
         .then((hash) => User.create({
           name, about, avatar, email, password: hash,
         }))
-        .then((user) => res.send({
-          name: user.name, about: user.about, avatar: user.avatar,
+        .then((newUser) => res.send({
+          name: newUser.name, about: newUser.about, avatar: newUser.avatar,
         }))
-        .catch((err) => handleError(res, err));
+        .catch(handleError);
     })
-    .catch((err) => handleError(res, err));
+    .catch(handleError);
 };
 
 module.exports.updateUser = (req, res) => {
