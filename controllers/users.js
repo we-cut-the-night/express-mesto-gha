@@ -14,14 +14,14 @@ module.exports.getUsers = (req, res, next) => {
     .catch(next);
 };
 
-module.exports.getUserById = (req, res) => {
+module.exports.getUserById = (req, res, next) => {
   User.findById(req.params.id)
     .then((user) => {
       if (!user) {
-        return Promise.reject(new NotFoundErr('Пользователь не найден'));
+        next(new NotFoundErr('Пользователь не найден'));
       } return res.status(200).send(user);
     })
-    .catch((err) => handleError(res, err));
+    .catch((err) => handleError(res, err, next));
 };
 
 module.exports.createUser = (req, res, next) => {
@@ -42,23 +42,23 @@ module.exports.createUser = (req, res, next) => {
         .then((newUser) => res.send({
           name: newUser.name, about: newUser.about, avatar: newUser.avatar,
         }))
-        .catch(handleError);
+        .catch((err) => handleError(res, err, next));
     })
-    .catch(handleError);
+    .catch((err) => handleError(res, err, next));
 };
 
-module.exports.updateUser = (req, res) => {
+module.exports.updateUser = (req, res, next) => {
   const { name, about } = req.body;
   User.findByIdAndUpdate(req.user._id, { name, about }, { new: true, runValidators: true })
     .then((user) => res.send(user))
-    .catch((err) => handleError(res, err));
+    .catch((err) => handleError(res, err, next));
 };
 
-module.exports.updateUserAvatar = (req, res) => {
+module.exports.updateUserAvatar = (req, res, next) => {
   const { avatar } = req.body;
   User.findByIdAndUpdate(req.user._id, { avatar }, { new: true, runValidators: true })
     .then((user) => res.send(user))
-    .catch((err) => handleError(res, err));
+    .catch((err) => handleError(res, err, next));
 };
 
 module.exports.login = (req, res, next) => {
@@ -67,12 +67,12 @@ module.exports.login = (req, res, next) => {
   User.findOne({ email }).select('+password')
     .then((user) => {
       if (!user) {
-        return Promise.reject(new AuthError('Некорректный email или пароль'));
+        next(new AuthError('Некорректный email или пароль'));
       }
-      return bcrypt.compare(password, user.password)
+      bcrypt.compare(password, user.password)
         .then((matched) => {
           if (!matched) {
-            return Promise.reject(new AuthError('Некорректный email или пароль'));
+            next(new AuthError('Некорректный email или пароль'));
           } return user;
         });
     })
@@ -80,12 +80,12 @@ module.exports.login = (req, res, next) => {
       const token = jwt.sign({ _id: user._id }, 'some-secret-key', { expiresIn: '7d' });
       res.send({ token });
     })
-    .catch(next);
+    .catch((err) => handleError(res, err, next));
 };
 
-module.exports.getMyUser = (req, res) => {
+module.exports.getMyUser = (req, res, next) => {
   User.findById(req.user._id)
     .orFail(new Error('notFoundErr'))
     .then((user) => res.status(200).send(user))
-    .catch((err) => handleError(res, err));
+    .catch((err) => handleError(res, err, next));
 };

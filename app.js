@@ -39,12 +39,10 @@ app.use('/users', auth, userRouter);
 app.use('/cards', auth, cardRouter);
 app.use((req, res, next) => next(new NotFoundErr('Страница не найдена')));
 
-app.use(errors({ message: 'Одна ошибка, и ты ошибься' }));
+app.use(errors());
 
 app.use((err, req, res, next) => {
   const { statusCode = 500, message } = err;
-
-  // res.status(statusCode).send(err);
 
   res.status(statusCode).send({
     message: statusCode === 500

@@ -8,11 +8,13 @@ const { regex } = require('../utils/regex');
 router.get('/', getUsers);
 router.get('/me', getMyUser);
 
-router.get('/:id', celebrate({
-  params: Joi.object().keys({
-    id: Joi.string().hex().length(24),
-  }),
-}), getUserById);
+// router.get('/:id', celebrate({
+//   params: Joi.object().keys({
+//     id: Joi.string().hex().length(24),
+//   }),
+// }), getUserById);
+
+router.get('/:id', getUserById);
 
 router.patch('/me', celebrate({
   body: Joi.object().keys({

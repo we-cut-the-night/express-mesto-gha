@@ -11,39 +11,39 @@ module.exports.getCards = (req, res, next) => {
     .catch(next);
 };
 
-module.exports.getCardbyId = (req, res) => {
+module.exports.getCardbyId = (req, res, next) => {
   Card.findById(req.params.id)
     .orFail(new Error('notFoundErr'))
     .then((card) => {
       res.status(200).send(card);
     })
-    .catch((err) => handleError(res, err));
+    .catch((err) => handleError(res, err, next));
 };
 
-module.exports.createCard = (req, res) => {
+module.exports.createCard = (req, res, next) => {
   const { name, link } = req.body;
   const owner = req.user._id;
 
   Card.create({ name, link, owner })
     .then((card) => res.status(200).send(card))
-    .catch((err) => handleError(res, err));
+    .catch((err) => handleError(res, err, next));
 };
 
-module.exports.deleteCard = (req, res) => {
+module.exports.deleteCard = (req, res, next) => {
   Card.findById(req.params.id)
     .orFail(new NotFoundErr('Карточка не найдена'))
     .then((card) => {
       if (req.user._id !== card.owner._id.toString()) {
-        return Promise.reject(new ForbiddenErr('Нельзя удалить карточку другого пользователя'));
-      } return Card.findByIdAndRemove(req.params.id);
+        next(new ForbiddenErr('Нельзя удалить карточку другого пользователя'));
+      } Card.findByIdAndRemove(req.params.id);
     })
     .then((card) => {
       res.status(200).send({ data: card });
     })
-    .catch((err) => handleError(res, err));
+    .catch((err) => handleError(res, err, next));
 };
 
-module.exports.likeCard = (req, res) => {
+module.exports.likeCard = (req, res, next) => {
   Card.findByIdAndUpdate(
     req.params.id,
     { $addToSet: { likes: req.user._id } },
@@ -53,10 +53,10 @@ module.exports.likeCard = (req, res) => {
     .then((like) => {
       res.status(200).send(like);
     })
-    .catch((err) => handleError(res, err));
+    .catch((err) => handleError(res, err, next));
 };
 
-module.exports.dislikeCard = (req, res) => {
+module.exports.dislikeCard = (req, res, next) => {
   Card.findByIdAndUpdate(
     req.params.id,
     { $pull: { likes: req.user._id } },
@@ -66,5 +66,5 @@ module.exports.dislikeCard = (req, res) => {
     .then((like) => {
       res.status(200).send(like);
     })
-    .catch((err) => handleError(res, err));
+    .catch((err) => handleError(res, err, next));
 };
