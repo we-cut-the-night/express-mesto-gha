@@ -29,7 +29,7 @@ module.exports.createCard = (req, res) => {
     .catch((err) => handleError(res, err));
 };
 
-module.exports.deleteCard = (req, res, next) => {
+module.exports.deleteCard = (req, res) => {
   Card.findById(req.params.id)
     .orFail(new NotFoundErr('Карточка не найдена'))
     .then((card) => {
@@ -40,10 +40,10 @@ module.exports.deleteCard = (req, res, next) => {
     .then((card) => {
       res.status(200).send({ data: card });
     })
-    .catch(next);
+    .catch((err) => handleError(res, err));
 };
 
-module.exports.likeCard = (req, res, next) => {
+module.exports.likeCard = (req, res) => {
   Card.findByIdAndUpdate(
     req.params.id,
     { $addToSet: { likes: req.user._id } },
@@ -53,10 +53,10 @@ module.exports.likeCard = (req, res, next) => {
     .then((like) => {
       res.status(200).send(like);
     })
-    .catch(next);
+    .catch((err) => handleError(res, err));
 };
 
-module.exports.dislikeCard = (req, res, next) => {
+module.exports.dislikeCard = (req, res) => {
   Card.findByIdAndUpdate(
     req.params.id,
     { $pull: { likes: req.user._id } },
@@ -66,5 +66,5 @@ module.exports.dislikeCard = (req, res, next) => {
     .then((like) => {
       res.status(200).send(like);
     })
-    .catch(next);
+    .catch((err) => handleError(res, err));
 };

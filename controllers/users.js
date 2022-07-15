@@ -2,29 +2,28 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 const { handleError } = require('../utils/errors');
-const ConflictErr = require('../errors/409-conflict-err');
 const AuthError = require('../errors/401-auth-err');
 const NotFoundErr = require('../errors/404-not-found-err');
 
-module.exports.getUsers = (req, res) => {
+module.exports.getUsers = (req, res, next) => {
   User.find({})
     .then((users) => {
       res.status(200).send(users);
     })
-    .catch(() => res.status(500).send({ message: 'На сервере произошла ошибка' }));
+    .catch(next);
 };
 
-module.exports.getUserById = (req, res, next) => {
+module.exports.getUserById = (req, res) => {
   User.findById(req.params.id)
     .then((user) => {
       if (!user) {
         return Promise.reject(new NotFoundErr('Пользователь не найден'));
       } return res.status(200).send(user);
     })
-    .catch(next);
+    .catch((err) => handleError(res, err));
 };
 
-module.exports.createUser = (req, res, next) => {
+module.exports.createUser = (req, res) => {
   const {
     name, about, avatar, email, password,
   } = req.body;
@@ -36,12 +35,7 @@ module.exports.createUser = (req, res, next) => {
     .then((user) => res.send({
       name: user.name, about: user.about, avatar: user.avatar,
     }))
-    .catch((err) => {
-      if (err.code === 11000) {
-        next(new ConflictErr('Пользователь с указанным email уже зарегистрирован'));
-        return;
-      } next(err);
-    });
+    .catch((err) => handleError(res, err));
 };
 
 module.exports.updateUser = (req, res) => {

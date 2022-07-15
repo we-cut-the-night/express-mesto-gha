@@ -19,10 +19,10 @@ module.exports = (req, res, next) => {
     return;
   }
 
-  // req.user = {
+  req.user = payload;
+  //   req.user = {
   //   _id: '62cdad8fe7c2882cf318cc4a', // Test user 2
   // };
 
-  req.user = payload;
   next();
 };
