@@ -69,16 +69,15 @@ module.exports.login = (req, res, next) => {
       if (!user) {
         next(new AuthError('Некорректный email или пароль'));
       }
-      bcrypt.compare(password, user.password)
+      return bcrypt.compare(password, user.password)
         .then((matched) => {
           if (!matched) {
             next(new AuthError('Некорректный email или пароль'));
-          } return user;
-        });
-    })
-    .then((user) => {
-      const token = jwt.sign({ _id: user._id }, 'some-secret-key', { expiresIn: '7d' });
-      res.status(200).send({ token });
+          }
+          const token = jwt.sign({ _id: user._id }, 'some-secret-key', { expiresIn: '7d' });
+          res.status(200).send({ token });
+        })
+        .catch((err) => handleError(res, err, next));
     })
     .catch((err) => handleError(res, err, next));
 };
