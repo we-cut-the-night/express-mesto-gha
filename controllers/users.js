@@ -19,7 +19,7 @@ module.exports.getUserById = (req, res, next) => {
     .then((user) => {
       if (!user) {
         next(new NotFoundErr('Пользователь не найден'));
-      } return res.status(200).send(user);
+      } else { res.status(200).send(user); }
     })
     .catch((err) => handleError(res, err, next));
 };
@@ -33,15 +33,16 @@ module.exports.createUser = (req, res, next) => {
     .then((oldUser) => {
       if (oldUser) {
         next(new ConflictErr('Пользователь с таким email уже существует'));
+      } else {
+        bcrypt.hash(password, 10)
+          .then((hash) => User.create({
+            name, about, avatar, email, password: hash,
+          }))
+          .then((newUser) => res.send({
+            name: newUser.name, about: newUser.about, avatar: newUser.avatar,
+          }))
+          .catch((err) => handleError(res, err, next));
       }
-      bcrypt.hash(password, 10)
-        .then((hash) => User.create({
-          name, about, avatar, email, password: hash,
-        }))
-        .then((newUser) => res.send({
-          name: newUser.name, about: newUser.about, avatar: newUser.avatar,
-        }))
-        .catch((err) => handleError(res, err, next));
     })
     .catch((err) => handleError(res, err, next));
 };
@@ -67,16 +68,18 @@ module.exports.login = (req, res, next) => {
     .then((user) => {
       if (!user) {
         next(new AuthError('Некорректный email или пароль'));
+      } else {
+        bcrypt.compare(password, user.password)
+          .then((matched) => {
+            if (!matched) {
+              next(new AuthError('Некорректный email или пароль'));
+            } else {
+              const token = jwt.sign({ _id: user._id }, 'some-secret-key', { expiresIn: '7d' });
+              res.status(200).send({ token });
+            }
+          })
+          .catch((err) => handleError(res, err, next));
       }
-      return bcrypt.compare(password, user.password)
-        .then((matched) => {
-          if (!matched) {
-            next(new AuthError('Некорректный email или пароль'));
-          }
-          const token = jwt.sign({ _id: user._id }, 'some-secret-key', { expiresIn: '7d' });
-          res.status(200).send({ token });
-        })
-        .catch((err) => handleError(res, err, next));
     })
     .catch((err) => handleError(res, err, next));
 };

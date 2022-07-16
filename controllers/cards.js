@@ -35,10 +35,11 @@ module.exports.deleteCard = (req, res, next) => {
     .then((card) => {
       if (req.user._id !== card.owner._id.toString()) {
         next(new ForbiddenErr('Нельзя удалить карточку другого пользователя'));
-      } return Card.findByIdAndRemove(req.params.id);
-    })
-    .then((card) => {
-      res.status(200).send({ data: card });
+      } else {
+        Card.findByIdAndRemove(req.params.id)
+          .then((removedCard) => { res.status(200).send({ data: removedCard }); })
+          .catch((err) => handleError(res, err, next));
+      }
     })
     .catch((err) => handleError(res, err, next));
 };
